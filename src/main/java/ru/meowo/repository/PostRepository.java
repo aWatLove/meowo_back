@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 import ru.meowo.model.Post;
 
 @Repository
-public interface PostRepository extends MongoRepository<String, Post> {
+public interface PostRepository extends MongoRepository<Post, String> {
 }
