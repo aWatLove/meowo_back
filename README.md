@@ -18,9 +18,9 @@
 <h2>Для запуска</h2>
 <b>Добавить в application.properties следующее:</b>
 
-- spring.data.mongodb.database=your_db_name 
-- spring.data.mongodb.host=localhost
-- spring.data.mongodb.port=27017
-
+- mongodb.url1=mongodb://{guestLogin}:{guestPassword}@localhost:27017/{your_db_name}
+- mongodb.url2=mongodb://{userLogin}:{userPassword}@localhost:27017/{your_db_name}
+- mongodb.url3=mongodb://{adminLogin}:{adminPassword}@localhost:27017/{your_db_name}
+</br>
 - suvorov.app.jwtSecret={your_key} 
 - suvorov.app.jwtExpirationMs=86400000
