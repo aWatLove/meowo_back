@@ -45,7 +45,6 @@ public class PostController {
     @PreAuthorize("hasRole('USER')")
     @PutMapping("/")
     public ResponseEntity<?> updatePost(@RequestBody UpdateRequest updateRequest, HttpServletRequest request) {
-        UserTokenInfo uti = new UserTokenInfo(jwtUtils.getInfoFromJwtToken(jwtUtils.extractJwtToken(request)));
         service.updateText(updateRequest);
         return ResponseEntity.ok("updated");
     }
