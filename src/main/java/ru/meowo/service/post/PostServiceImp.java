@@ -21,6 +21,11 @@ import java.util.*;
 
 @Service
 public class PostServiceImp implements PostService {
+
+    @Autowired
+    @Qualifier("mongoClientMap")
+    Map<String, MongoClient> mongoClientMap;
+
     @Autowired
     @Qualifier("mongoClientGuest")
     MongoClient guestClient;
@@ -36,7 +41,7 @@ public class PostServiceImp implements PostService {
 
     // пока сделано через клиент Гостя
     public List<Post> getAllPost() {
-        FindIterable<Document> findIterable = guestClient.getDatabase("meowo").getCollection("posts").find();
+        FindIterable<Document> findIterable = mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").find();
         List<Post> posts = new ArrayList<>();
         findIterable.forEach(x -> posts.add(documentToPost(x)));
         return posts;
@@ -46,7 +51,7 @@ public class PostServiceImp implements PostService {
     public Post selectByID(String id) {
         Document query = new Document();
         query.put("_id", new ObjectId(id));
-        return documentToPost(Objects.requireNonNull(guestClient.getDatabase("meowo").getCollection("posts").find(query).first()));
+        return documentToPost(Objects.requireNonNull(mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").find(query).first()));
     }
 
     // пока сделано через клиент Гостя
@@ -54,7 +59,7 @@ public class PostServiceImp implements PostService {
         Document query = new Document();
         query.put("authorName", name);
 
-        FindIterable<Document> findIterable = guestClient.getDatabase("meowo").getCollection("posts").find(query);
+        FindIterable<Document> findIterable = mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").find(query);
         List<Post> posts = new ArrayList<>();
         findIterable.forEach(x -> posts.add(documentToPost(x)));
         return posts;
@@ -63,7 +68,7 @@ public class PostServiceImp implements PostService {
     // пока сделано через клиент Юзера
     public void insert(Post post) {
         Document document = postToDocument(post);
-        userClient.getDatabase("meowo").getCollection("posts").insertOne(document);
+        mongoClientMap.get("USER").getDatabase("meowo").getCollection("posts").insertOne(document);
     }
 
     //пока сделано через клиент Юзера
@@ -76,7 +81,7 @@ public class PostServiceImp implements PostService {
 
         BasicDBObject query = new BasicDBObject();
         query.append("_id", new ObjectId(updateRequest.getId()));
-        userClient.getDatabase("meowo").getCollection("posts").updateOne(query, update);
+        mongoClientMap.get("USER").getDatabase("meowo").getCollection("posts").updateOne(query, update);
     }
 
     public boolean like(String idPost, String idLike) {
@@ -97,7 +102,7 @@ public class PostServiceImp implements PostService {
 
         BasicDBObject query = new BasicDBObject();
         query.append("_id", new ObjectId(idPost));
-        userClient.getDatabase("meowo").getCollection("posts").updateOne(query, update);
+        mongoClientMap.get("USER").getDatabase("meowo").getCollection("posts").updateOne(query, update);
         return trigger;
     }
 
@@ -105,7 +110,7 @@ public class PostServiceImp implements PostService {
     public void delete(String id) {
         Document document = new Document();
         document.put("_id", new ObjectId(id));
-        adminClient.getDatabase("meowo").getCollection("posts").deleteOne(document);
+        mongoClientMap.get("ADMIN").getDatabase("meowo").getCollection("posts").deleteOne(document);
     }
 
 
@@ -119,7 +124,7 @@ public class PostServiceImp implements PostService {
         );
 
         // Выполнение агрегации и получение результатов
-        List<Document> result = guestClient.getDatabase("meowo").getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
+        List<Document> result = mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
 
         // Обработка результатов
         List<LikeCountResponse> likesCounts = new ArrayList<>();
@@ -140,7 +145,7 @@ public class PostServiceImp implements PostService {
         );
 
         // Выполнение агрегации и получение результатов
-        List<Document> result = guestClient.getDatabase("meowo").getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
+        List<Document> result = mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
 
         // Обработка результатов и формирование списка объектов Post
         List<Post> posts = new ArrayList<>();
@@ -148,12 +153,12 @@ public class PostServiceImp implements PostService {
         return posts;
     }
 
-    public List<Post> topPosts(){
+    public List<Post> topPosts() {
         List<Document> pipeline = new ArrayList<>();
         pipeline.add(new Document("$sort", new Document("likes", -1)));
         pipeline.add(new Document("$limit", 10));
 
-        List<Document> result = guestClient.getDatabase("meowo").getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
+        List<Document> result = mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
 
         // Обработка результатов и формирование списка объектов Post
         List<Post> posts = new ArrayList<>();
