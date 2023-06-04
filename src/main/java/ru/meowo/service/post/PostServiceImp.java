@@ -23,55 +23,41 @@ import java.util.*;
 public class PostServiceImp implements PostService {
 
     @Autowired
+    @Qualifier("dbname")
+    String dbname;
+
+    @Autowired
     @Qualifier("mongoClientMap")
     Map<String, MongoClient> mongoClientMap;
 
-    @Autowired
-    @Qualifier("mongoClientGuest")
-    MongoClient guestClient;
-
-    @Autowired
-    @Qualifier("mongoClientUser")
-    MongoClient userClient;
-
-    @Autowired
-    @Qualifier("mongoClientAdmin")
-    MongoClient adminClient;
-
-
-    // пока сделано через клиент Гостя
     public List<Post> getAllPost() {
-        FindIterable<Document> findIterable = mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").find();
+        FindIterable<Document> findIterable = mongoClientMap.get("GUEST").getDatabase(dbname).getCollection("posts").find();
         List<Post> posts = new ArrayList<>();
         findIterable.forEach(x -> posts.add(documentToPost(x)));
         return posts;
     }
 
-    // пока сделано через клиент Гостя
     public Post selectByID(String id) {
         Document query = new Document();
         query.put("_id", new ObjectId(id));
-        return documentToPost(Objects.requireNonNull(mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").find(query).first()));
+        return documentToPost(Objects.requireNonNull(mongoClientMap.get("GUEST").getDatabase(dbname).getCollection("posts").find(query).first()));
     }
 
-    // пока сделано через клиент Гостя
     public List<Post> selectByName(String name) {
         Document query = new Document();
         query.put("authorName", name);
 
-        FindIterable<Document> findIterable = mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").find(query);
+        FindIterable<Document> findIterable = mongoClientMap.get("GUEST").getDatabase(dbname).getCollection("posts").find(query);
         List<Post> posts = new ArrayList<>();
         findIterable.forEach(x -> posts.add(documentToPost(x)));
         return posts;
     }
 
-    // пока сделано через клиент Юзера
     public void insert(Post post) {
         Document document = postToDocument(post);
-        mongoClientMap.get("USER").getDatabase("meowo").getCollection("posts").insertOne(document);
+        mongoClientMap.get("USER").getDatabase(dbname).getCollection("posts").insertOne(document);
     }
 
-    //пока сделано через клиент Юзера
     public void updateText(UpdateRequest updateRequest) {
         Post post = selectByID(updateRequest.getId());
         post.setText(updateRequest.getNewText());
@@ -81,7 +67,7 @@ public class PostServiceImp implements PostService {
 
         BasicDBObject query = new BasicDBObject();
         query.append("_id", new ObjectId(updateRequest.getId()));
-        mongoClientMap.get("USER").getDatabase("meowo").getCollection("posts").updateOne(query, update);
+        mongoClientMap.get("USER").getDatabase(dbname).getCollection("posts").updateOne(query, update);
     }
 
     public boolean like(String idPost, String idLike) {
@@ -102,15 +88,14 @@ public class PostServiceImp implements PostService {
 
         BasicDBObject query = new BasicDBObject();
         query.append("_id", new ObjectId(idPost));
-        mongoClientMap.get("USER").getDatabase("meowo").getCollection("posts").updateOne(query, update);
+        mongoClientMap.get("USER").getDatabase(dbname).getCollection("posts").updateOne(query, update);
         return trigger;
     }
 
-    // пока сделано через клиент Админа
     public void delete(String id) {
         Document document = new Document();
         document.put("_id", new ObjectId(id));
-        mongoClientMap.get("ADMIN").getDatabase("meowo").getCollection("posts").deleteOne(document);
+        mongoClientMap.get("ADMIN").getDatabase(dbname).getCollection("posts").deleteOne(document);
     }
 
 
@@ -123,10 +108,8 @@ public class PostServiceImp implements PostService {
                 new Document("$limit", 10)
         );
 
-        // Выполнение агрегации и получение результатов
-        List<Document> result = mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
+        List<Document> result = mongoClientMap.get("ADMIN").getDatabase(dbname).getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
 
-        // Обработка результатов
         List<LikeCountResponse> likesCounts = new ArrayList<>();
         for (Document document : result) {
             String authorId = document.getString("_id");
@@ -138,16 +121,13 @@ public class PostServiceImp implements PostService {
     }
 
     public List<Post> usersLikes(String id) {
-        // Создание агрегационного пайплайна
         List<Document> pipeline = Arrays.asList(
                 new Document("$match", new Document("likes", id)),
                 new Document("$sort", new Document("postDate", -1))
         );
 
-        // Выполнение агрегации и получение результатов
-        List<Document> result = mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
+        List<Document> result = mongoClientMap.get("ADMIN").getDatabase(dbname).getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
 
-        // Обработка результатов и формирование списка объектов Post
         List<Post> posts = new ArrayList<>();
         result.forEach(x -> posts.add(documentToPost(x)));
         return posts;
@@ -158,9 +138,8 @@ public class PostServiceImp implements PostService {
         pipeline.add(new Document("$sort", new Document("likes", -1)));
         pipeline.add(new Document("$limit", 10));
 
-        List<Document> result = mongoClientMap.get("GUEST").getDatabase("meowo").getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
+        List<Document> result = mongoClientMap.get("GUEST").getDatabase(dbname).getCollection("posts").aggregate(pipeline).into(new ArrayList<>());
 
-        // Обработка результатов и формирование списка объектов Post
         List<Post> posts = new ArrayList<>();
         result.forEach(x -> posts.add(documentToPost(x)));
         return posts;

@@ -18,6 +18,10 @@ import java.util.Map;
 
 @Configuration
 public class MongoConfig {
+
+    @Value("${mongodb.dbname}")
+    private String dbname;
+
     @Value("${mongodb.url1}")
     private String url1Guest;
 
@@ -26,6 +30,11 @@ public class MongoConfig {
 
     @Value("${mongodb.url3}")
     private String url3Admin;
+
+    @Bean
+    public String dbname() {
+        return dbname;
+    }
 
     @Bean(name = "mongoClientGuest")
     public MongoClient mongoClient1() {
@@ -55,7 +64,7 @@ public class MongoConfig {
     }
 
     @Bean
-    public MongoTemplate mongoTemplate(MongoClient mongoClient) {
-        return new MongoTemplate(mongoClient, "meowo");
+    public MongoTemplate mongoTemplate(MongoClient mongoClient, String dbname) {
+        return new MongoTemplate(mongoClient, dbname);
     }
 }
