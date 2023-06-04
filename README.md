@@ -18,8 +18,9 @@
 <h2>Для запуска</h2>
 <b>Добавить в application.properties следующее:</b>
 
-- mongodb.url1=mongodb://{guestLogin}:{guestPassword}@localhost:27017/{your_db_name}
-- mongodb.url2=mongodb://{userLogin}:{userPassword}@localhost:27017/{your_db_name}
-- mongodb.url3=mongodb://{adminLogin}:{adminPassword}@localhost:27017/{your_db_name}
-- suvorov.app.jwtSecret={your_key} 
+- mongodb.url1=mongodb://{guestLogin}:{guestPassword}@localhost:27017/{dbname}
+- mongodb.url2=mongodb://{userLogin}:{userPassword}@localhost:27017/{dbname}
+- mongodb.url3=mongodb://{adminLogin}:{adminPassword}@localhost:27017/{dbname}
+- mongodb.dbname={dbname}
+- suvorov.app.jwtSecret={yourKey} 
 - suvorov.app.jwtExpirationMs=86400000
