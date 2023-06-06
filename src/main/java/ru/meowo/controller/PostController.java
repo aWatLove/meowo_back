@@ -9,7 +9,7 @@ import ru.meowo.model.Post;
 import ru.meowo.model.UserTokenInfo;
 import ru.meowo.payload.request.UpdateRequest;
 import ru.meowo.security.jwt.JwtUtils;
-import ru.meowo.service.post.PostServiceImp;
+import ru.meowo.service.post.PostService;
 
 import java.util.Date;
 
@@ -20,7 +20,7 @@ public class PostController {
     JwtUtils jwtUtils;
 
     @Autowired
-    PostServiceImp service;
+    PostService service;
 
     /* crud */
     @GetMapping("/user/{name}")

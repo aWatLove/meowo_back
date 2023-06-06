@@ -36,5 +36,4 @@ public class Post {
         this.postDate = postDate;
         this.text = text;
     }
-
 }
